@@ -1,5 +1,7 @@
 package springbook.user.dao;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import springbook.user.domain.User;
 
 import java.sql.SQLException;
@@ -18,7 +20,11 @@ public class UserDaoTest {
 ////        UserDao dao = new UserDao();
 
         // 팩토리를 사용하도록 수정한 UserDaoTest
-        UserDao dao = new DaoFactory().userDao();
+//        UserDao dao = new DaoFactory().userDao();
+
+        // 애플리케이션 컨텍스트를 적용한 UserDaoTest
+        ApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
+        UserDao dao = context.getBean("userDao", UserDao.class);
 
         User user = new User();
         user.setId("whiteship");
