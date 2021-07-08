@@ -13,8 +13,12 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	// mysql
+	implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.25'
+	// jdbc
+	implementation group: 'org.springframework', name: 'spring-jdbc', version: '5.3.8'
 }
 
 test {

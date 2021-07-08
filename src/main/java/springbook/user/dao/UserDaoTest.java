@@ -2,6 +2,7 @@ package springbook.user.dao;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.GenericXmlApplicationContext;
 import springbook.user.domain.User;
 
 import java.sql.SQLException;
@@ -23,7 +24,11 @@ public class UserDaoTest {
 //        UserDao dao = new DaoFactory().userDao();
 
         // 애플리케이션 컨텍스트를 적용한 UserDaoTest
-        ApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
+//        ApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
+
+        // XML
+        ApplicationContext context = new GenericXmlApplicationContext("applicationContext.xml");
+
         UserDao dao = context.getBean("userDao", UserDao.class);
 
         User user = new User();
