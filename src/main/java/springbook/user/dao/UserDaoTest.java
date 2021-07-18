@@ -41,10 +41,21 @@ public class UserDaoTest {
         System.out.println(user.getId() + " 등록 성공");
 
         User user2 = dao.get(user.getId());
-        System.out.println(user2.getName());
-        System.out.println(user2.getPassword());
+//        System.out.println(user2.getName());
+//        System.out.println(user2.getPassword());
+//        System.out.println(user2.getId() + " 조회 성공");
 
-        System.out.println(user2.getId() + " 조회 성공");
+        // 이 테스트 방법에서 가장 돋보이는 건,
+        // main() 메소드를 이용해 쉽게 테스트 수행을 가능하게 했다는 점과
+        // 테스트할 대상인 UserDao를 직접 호출해서 사용한다는 점이다.
+
+        if (!user.getName().equals(user2.getName())) {
+            System.out.println("테스트 실패 (name)");
+        } else if (!user.getPassword().equals(user2.getPassword())) {
+            System.out.println("테스트 실패 (password)");
+        } else {
+            System.out.println("조회 테스트 성공");
+        }
 
     }
 
