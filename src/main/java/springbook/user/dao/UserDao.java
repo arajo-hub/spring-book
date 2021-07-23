@@ -294,96 +294,309 @@ import java.sql.*;
 /**
  * DataSource를 사용하는 UserDao
  */
-public class UserDao {
-
-    private DataSource dataSource;
-
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
-
-    public void add(User user) throws SQLException {
-
-        Connection c = dataSource.getConnection();
-
-        PreparedStatement ps = c.prepareStatement(
-            "insert into users(id, name, password) values (?, ?, ?)");
-
-        ps.setString(1, user.getId());
-        ps.setString(2, user.getName());
-        ps.setString(3, user.getPassword());
-
-        ps.executeUpdate();
-
-        ps.close();
-        c.close();
-
-    }
-
-    public User get(String id) throws SQLException {
-
-        Connection c = dataSource.getConnection();
-
-        PreparedStatement ps = c.prepareStatement("select * from users where id = ?");
-        ps.setString(1, id);
-
-        ResultSet rs = ps.executeQuery();
-//        rs.next();
+//public class UserDao {
 //
-//        User user = new User();
-//        user.setId(rs.getString("id"));
-//        user.setName(rs.getString("name"));
-//        user.setPassword(rs.getString("password"));
+//    private DataSource dataSource;
+//
+//    public void setDataSource(DataSource dataSource) {
+//        this.dataSource = dataSource;
+//    }
+//
+//    public void add(final User user) throws SQLException {
+//
+////        Connection c = dataSource.getConnection();
+////
+////        PreparedStatement ps = c.prepareStatement(
+////            "insert into users(id, name, password) values (?, ?, ?)");
+////
+////        ps.setString(1, user.getId());
+////        ps.setString(2, user.getName());
+////        ps.setString(3, user.getPassword());
+////
+////        ps.executeUpdate();
+////
+////        ps.close();
+////        c.close();
+//
+//        // 내부 클래스
+////        class AddStatement implements StatementStrategy {
+////
+////            User user;
+////
+////            public AddStatement(User user) {
+////                this.user = user;
+////            }
+////
+////            @Override
+////            public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+////                PreparedStatement ps = c.prepareStatement("insert into users(id, name, password) values(?, ?, ?)");
+////
+////                // user는 어디서 가져올까???
+////                ps.setString(1, user.getId());
+////                ps.setString(2, user.getName());
+////                ps.setString(3, user.getPassword());
+////
+////                return ps;
+////            }
+////        }
+////
+////        StatementStrategy st = new AddStatement(user);
+////        jdbcContextWithStatementStrategy(st);
+//
+//        // 메소드 파라미터로 이전한 익명 내부 클래스
+//        jdbcContextWithStatementStrategy(
+//            new StatementStrategy() {
+//                @Override
+//                public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+//                    PreparedStatement ps = c.prepareStatement("insert into users(id, name, password) values(?, ?, ?)");
+//                    ps.setString(1, user.getId());
+//                    ps.setString(2, user.getName());
+//                    ps.setString(3, user.getPassword());
+//
+//                    return ps;
+//                }
+//            }
+//        );
+//
+//    }
+//
+//    public User get(String id) throws SQLException {
+//
+//        Connection c = dataSource.getConnection();
+//
+//        PreparedStatement ps = c.prepareStatement("select * from users where id = ?");
+//        ps.setString(1, id);
+//
+//        ResultSet rs = ps.executeQuery();
+////        rs.next();
+////
+////        User user = new User();
+////        user.setId(rs.getString("id"));
+////        user.setName(rs.getString("name"));
+////        user.setPassword(rs.getString("password"));
+////
+////        rs.close();
+////        ps.close();
+////        c.close();
+//
+//        // 데이터를 찾지 못하면 예외를 발생시키도록 수정
+//        User user = null;
+//        if (rs.next()) {
+//            user = new User();
+//            user.setId(rs.getString("id"));
+//            user.setName(rs.getString("name"));
+//            user.setPassword(rs.getString("password"));
+//        }
 //
 //        rs.close();
 //        ps.close();
 //        c.close();
+//
+//        // 예외 던지기
+//        if (user == null) throw new EmptyResultDataAccessException(1);
+//
+//        return user;
+//
+//    }
+//
+//    public void deleteAll() throws SQLException {
+////        Connection c = dataSource.getConnection();
+////
+////        PreparedStatement ps = c.prepareStatement("delete from users");
+////        ps.executeUpdate();
+////
+////        ps.close();
+////        c.close();
+//
+////        // 예외 발생시에도 리소스를 반환하도록 수정
+////        Connection c = null;
+////        PreparedStatement ps = null;
+////
+////        try {
+////            c = dataSource.getConnection();
+////            // 템플릿 메소드 패턴 적용
+//////            ps = makeStatement(c);
+////            // 전략 패턴 적용
+////            StatementStrategy strategy = new DeleteAllStatement();
+////            ps = strategy.makePreparedStatement(c);
+////            ps.executeUpdate();
+////        } catch (SQLException e) {
+////            throw e;
+////        } finally {
+////            if (ps != null) {
+////                try {
+////                    ps.close();
+////                } catch (SQLException e) {
+////                    // close()를 하다가 예외가 발생할 경우
+////                    // 보통 로그를 남기는 등의 부가작업이 필요할 수 있으니 일단 만들어둔다.
+////                }
+////            }
+////            if (c != null) {
+////                try {
+////                    c.close();
+////                } catch (SQLException e) {
+////                    //close()를 하다가 예외가 발생할 경우
+////                    // 보통 로그를 남기는 등의 부가작업이 필요할 수 있으니 일단 만들어둔다.
+////                }
+////            }
+////        }
+//
+////        // 클라이언트 책임을 담당하도록 수정
+////        // 위 코드에서 StatementStrategy를 DeleteAllStatement로 구현하는 코드만 빼낸 것.
+////        StatementStrategy st = new DeleteAllStatement(); // 선정한 전략 클래스의 오브젝트 생성
+////        jdbcContextWithStatementStrategy(st); // 컨텍스트 호출 전략 오브젝트 전달
+//
+//        // 익명 내부 클래스를 적용한 deleteAll() 메소드
+//        jdbcContextWithStatementStrategy(
+//            new StatementStrategy() {
+//                @Override
+//                public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+//                    return c.prepareStatement("delete from users");
+//                }
+//            }
+//        );
+//
+//    }
+//
+//    // 메소드로 분리한 try/catch/finally 컨텍스트 코드
+//    public void jdbcContextWithStatementStrategy(StatementStrategy stmt) throws SQLException {
+//        Connection c = null;
+//        PreparedStatement ps = null;
+//
+//        try {
+//            c = dataSource.getConnection();
+//            ps = stmt.makePreparedStatement(c);
+//
+//            ps.executeUpdate();
+//        } catch (SQLException e) {
+//            throw e;
+//        } finally {
+//            if (ps != null) { try { ps.close(); } catch (SQLException e) {} }
+//            if (c != null) { try { c.close(); } catch (SQLException e) {} }
+//        }
+//    }
+//
+//    private PreparedStatement makeStatement(Connection c) throws SQLException {
+//        PreparedStatement ps;
+//        ps = c.prepareStatement("delete from users");
+//        return ps;
+//    }
+//
+//    public int getCount() throws SQLException {
+////        Connection c = dataSource.getConnection();
+////
+////        PreparedStatement ps = c.prepareStatement("select count(*) from users");
+////
+////        ResultSet rs = ps.executeQuery();
+////        rs.next();
+////        int count = rs.getInt(1);
+////
+////        rs.close();
+////        ps.close();
+////        c.close();
+////
+////        return count;
+//
+//        // JDBC 예외처리를 적용
+//        Connection c = null;
+//        PreparedStatement ps = null;
+//        ResultSet rs = null;
+//
+//        try {
+//            c = dataSource.getConnection();
+//            ps = c.prepareStatement("select count(*) from users");
+//
+//            rs = ps.executeQuery();
+//            rs.next();
+//            return rs.getInt(1);
+//        } catch (Exception e) {
+//            throw e;
+//        } finally {
+//            if (rs != null) {
+//                try {
+//                    rs.close();
+//                } catch (SQLException e) {
+//                }
+//            }
+//            if (ps != null) {
+//                try {
+//                    ps.close();
+//                } catch (SQLException e) {
+//                }
+//            }
+//            if (c != null) {
+//                try {
+//                    c.close();
+//                } catch (SQLException e) {
+//                }
+//            }
+//        }
+//
+//    }
+//
+//}
 
-        // 데이터를 찾지 못하면 예외를 발생시키도록 수정
-        User user = null;
-        if (rs.next()) {
-            user = new User();
-            user.setId(rs.getString("id"));
-            user.setName(rs.getString("name"));
-            user.setPassword(rs.getString("password"));
-        }
+/**
+ * JdbcContext를 DI 받아서 사용하도록 만든 UserDao
+ */
+public class UserDao {
 
-        rs.close();
-        ps.close();
-        c.close();
+    private DataSource dataSource;
+    private JdbcContext jdbcContext;
 
-        // 예외 던지기
-        if (user == null) throw new EmptyResultDataAccessException(1);
-
-        return user;
-
+    // JdbcContext 생성과 DI 작업을 수행
+    public void setDataSource(DataSource dataSource) {
+        this.jdbcContext = new JdbcContext();
+        this.jdbcContext.setDataSource(dataSource);
+        this.dataSource = dataSource;
     }
+
+//    // JdbcContext DI
+//    public void setJdbcContext(JdbcContext jdbcContext) {
+//        this.jdbcContext = jdbcContext;
+//    }
+
+    public void add(final User user) throws SQLException {
+        this.jdbcContext.workWithStatementStrategy(
+            new StatementStrategy() {
+                @Override
+                public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+                    PreparedStatement ps = c.prepareStatement("insert into users(id, name, password) values(?, ?, ?)");
+                    ps.setString(1, user.getId());
+                    ps.setString(2, user.getName());
+                    ps.setString(3, user.getPassword());
+
+                    return ps;
+                }
+            }
+        );
+    }
+
+//    public void deleteAll() throws SQLException {
+//        this.jdbcContext.workWithStatementStrategy(
+//            new StatementStrategy() {
+//                @Override
+//                public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+//                    return c.prepareStatement("delete from users");
+//                }
+//            }
+//        );
+//    }
 
     public void deleteAll() throws SQLException {
-        Connection c = dataSource.getConnection();
-
-        PreparedStatement ps = c.prepareStatement("delete from users");
-        ps.executeUpdate();
-
-        ps.close();
-        c.close();
+        this.jdbcContext.executeSql("delete from users");
     }
 
-    public int getCount() throws SQLException {
-        Connection c = dataSource.getConnection();
-
-        PreparedStatement ps = c.prepareStatement("select count(*) from users");
-
-        ResultSet rs = ps.executeQuery();
-        rs.next();
-        int count = rs.getInt(1);
-
-        rs.close();
-        ps.close();
-        c.close();
-
-        return count;
-
-    }
+     // 아래 메소드만 JdbcContext로 옮긴다.
+//    private void executeSql(final String query) throws SQLException {
+//        this.jdbcContext.workWithStatementStrategy(
+//            new StatementStrategy() {
+//                @Override
+//                public PreparedStatement makePreparedStatement(Connection c) throws SQLException {
+//                    return c.prepareStatement(query);
+//                }
+//            }
+//        );
+//    }
 
 }
