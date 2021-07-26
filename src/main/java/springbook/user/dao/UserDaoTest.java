@@ -3,6 +3,7 @@ package springbook.user.dao;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.dao.DataAccessException;
 import springbook.user.domain.User;
 
 import java.sql.SQLException;

@@ -6,8 +6,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.GenericXmlApplicationContext;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator;
+import org.springframework.jdbc.support.SQLExceptionTranslator;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -19,7 +23,10 @@ import java.sql.SQLException;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @ExtendWith(SpringExtension.class) // 스프링의 테스트 컨텍스트 프레임워크의 JUnit 확장기능 지정
 @ContextConfiguration(locations = "/test-applicationContext.xml")
@@ -39,6 +46,9 @@ public class UserDaoTest {
     // 스프링 애플리케이션 컨텍스트는 초기화할 때 자기 자신도 빈으로 등록한다.
     // 따라서 애플리케이션 컨텍스트에는 ApplicationContext 타입의 빈이 존재하는 셈이고
     // DI도 가능한 것이다.
+
+    @Autowired
+    DataSource dataSource;
 
 //    @Autowired // ApplicationContext 타입의 인스턴스 변수를 없애고 UserDao 빈을 직접 DI 받는다.
     private UserDao dao;
@@ -83,10 +93,10 @@ public class UserDaoTest {
 
         // 애플리케이션 컨텍스트 없는 DI
         // 인스턴스 변수 dao 에도 @Autowired를 없애줘야 한다.
-        this.dao = new UserDao();
-        DataSource dataSource = new SingleConnectionDataSource(
-                "jdbc:mysql://localhost/testdb", "spring", "book", true);
-        dao.setDataSource(dataSource);
+//        this.dao = new UserDao();
+//        DataSource dataSource = new SingleConnectionDataSource(
+//                "jdbc:mysql://localhost/testdb", "spring", "book", true);
+//        dao.setDataSource(dataSource);
 
     }
 
@@ -207,6 +217,34 @@ public class UserDaoTest {
         assertThat(user1.getId()).isEqualTo(user2.getId());
         assertThat(user1.getName()).isEqualTo(user2.getName());
         assertThat(user1.getPassword()).isEqualTo(user2.getPassword());
+    }
+
+    @Test
+    public void duplicateKey() {
+        dao.deleteAll();
+
+        assertThrows(DataAccessException.class, () -> {
+            dao.add(user1);
+            dao.add(user1); // 같은 사용자 두 번 등록 -> 예외 발생!
+        });
+
+        // org.springframework.dao.DuplicateKeyException: PreparedStatementCallback;
+//        dao.add(user1);
+//        dao.add(user1);
+    }
+
+    @Test
+    public void sqlExceptionTranslate() {
+        dao.deleteAll();
+
+        try {
+            dao.add(user1);
+            dao.add(user1);
+        } catch (DuplicateKeyException ex) {
+            SQLException sqlEx = (SQLException) ex.getRootCause(); // getRootCause() 메소드를 이용하면 중첩되어 있는 SQLException을 가져올 수 있다.
+            SQLExceptionTranslator set = new SQLErrorCodeSQLExceptionTranslator(this.dataSource); // translate()를 하면 SQLException을 DataAccessException 타입의 예외로 변환해준다.
+            assertThat(set.translate(null, null, sqlEx), instanceOf(DuplicateKeyException.class));
+        }
     }
 
 }
