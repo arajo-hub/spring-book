@@ -2,6 +2,7 @@ package springbook.user.dao;
 
 import springbook.user.domain.User;
 
+import java.sql.Connection;
 import java.util.List;
 
 public interface UserDao {
@@ -12,4 +13,11 @@ public interface UserDao {
     void deleteAll();
     int getCount();
     void update(User user1);
+
+//    void add(Connection c, User user);
+//    User get(Connection c, String id);
+//    List<User> getAll(Connection c);
+//    void deleteAll(Connection c);
+//    int getCount(Connection c);
+//    void update(Connection c, User user1);
 }
