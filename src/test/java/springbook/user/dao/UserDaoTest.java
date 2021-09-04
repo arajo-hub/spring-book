@@ -12,6 +12,7 @@ import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator;
 import org.springframework.jdbc.support.SQLExceptionTranslator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.transaction.PlatformTransactionManager;
 import springbook.user.domain.Level;
 import springbook.user.domain.User;
 import springbook.user.service.UserService;
@@ -56,6 +57,9 @@ public class UserDaoTest {
 
     @Autowired
     UserDao userDao;
+
+    @Autowired
+    PlatformTransactionManager transactionManager;
 
 //    @Autowired // ApplicationContext 타입의 인스턴스 변수를 없애고 UserDao 빈을 직접 DI 받는다.
     private UserDao dao;
@@ -357,7 +361,8 @@ public class UserDaoTest {
     public void upgradeAllOrNothing() throws Exception {
         UserService testUserService = new TestUserService(users.get(3).getId());
         testUserService.setUserDao(this.userDao);
-        testUserService.setDataSource(this.dataSource);
+//        testUserService.setDataSource(this.dataSource);
+        testUserService.setTransactionManager(transactionManager); // userService 빈의 프로퍼티 설정과 동일한 수동 DI
         userDao.deleteAll();
         for (User user : users) {
             userDao.add(user);
