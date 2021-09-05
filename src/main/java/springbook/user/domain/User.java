@@ -8,6 +8,7 @@ public class User {
     String id;
     String name;
     String password;
+    String email;
 
     Level level; // enum
     int login;
@@ -62,6 +63,14 @@ public class User {
     public int getRecommend() { return recommend; }
 
     public void setRecommend(int recommend) { this.recommend = recommend; }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
     @Override
     public String toString() {

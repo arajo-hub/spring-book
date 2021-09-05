@@ -10,15 +10,20 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator;
 import org.springframework.jdbc.support.SQLExceptionTranslator;
+import org.springframework.mail.MailException;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import springbook.user.domain.Level;
 import springbook.user.domain.User;
+import springbook.user.service.MailSender;
 import springbook.user.service.UserService;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -60,6 +65,9 @@ public class UserDaoTest {
 
     @Autowired
     PlatformTransactionManager transactionManager;
+
+    @Autowired
+    MailSender mailSender;
 
 //    @Autowired // ApplicationContext 타입의 인스턴스 변수를 없애고 UserDao 빈을 직접 DI 받는다.
     private UserDao dao;
@@ -112,6 +120,24 @@ public class UserDaoTest {
 ////        dao.setDataSource(dataSource);
 //
 //    }
+
+    static class MockMailSender implements org.springframework.mail.MailSender {
+
+        private List<String> requests =  new ArrayList<String>();
+
+        public List<String> getRequests() {
+            return requests;
+        }
+
+        @Override
+        public void send(SimpleMailMessage mailMessage) throws MailException {
+            requests.add(mailMessage.getTo()[0]);
+        }
+
+        @Override
+        public void send(SimpleMailMessage... simpleMessages) throws MailException {
+        }
+    }
 
     @BeforeEach
     public void setUp() {
@@ -309,12 +335,33 @@ public class UserDaoTest {
         assertThat(this.userService, notNullValue());
     }
 
+//    @Test
+//    public void upgradeLevels() throws Exception {
+//        userDao.deleteAll();
+//        for (User user : users) {
+//            userDao.add(user);
+//        }
+//
+//        userService.upgradeLevels();
+//
+//        checkLevelUpgraded(users.get(0), false);
+//        checkLevelUpgraded(users.get(1), true);
+//        checkLevelUpgraded(users.get(2), false);
+//        checkLevelUpgraded(users.get(3), true);
+//        checkLevelUpgraded(users.get(4), false);
+//    }
+
     @Test
+    @DirtiesContext // 컨텍스트의 DI 설정을 변경하는 테스트라는 것을 알려준다.
     public void upgradeLevels() throws Exception {
+        // 목 오브젝트를 통해 메일 발송 여부를 검증하도록 수정
         userDao.deleteAll();
         for (User user : users) {
             userDao.add(user);
         }
+
+        MockMailSender mockMailSender = new MockMailSender();
+        userService.setMailSender((MailSender) mockMailSender);
 
         userService.upgradeLevels();
 
@@ -323,6 +370,11 @@ public class UserDaoTest {
         checkLevelUpgraded(users.get(2), false);
         checkLevelUpgraded(users.get(3), true);
         checkLevelUpgraded(users.get(4), false);
+
+        List<String> request = mockMailSender.getRequests();
+        assertThat(request.size()).isEqualTo(2);
+        assertThat(request.get(0)).isEqualTo(users.get(1).getEmail());
+        assertThat(request.get(1)).isEqualTo(users.get(3).getEmail());
     }
 
     private void checkLevelUpgraded(User user, boolean upgraded) {
@@ -362,6 +414,7 @@ public class UserDaoTest {
         UserService testUserService = new TestUserService(users.get(3).getId());
         testUserService.setUserDao(this.userDao);
 //        testUserService.setDataSource(this.dataSource);
+        testUserService.setMailSender(mailSender); // 테스트용 UserService를 위한 메일 전송  오브젝트의 수동 DI
         testUserService.setTransactionManager(transactionManager); // userService 빈의 프로퍼티 설정과 동일한 수동 DI
         userDao.deleteAll();
         for (User user : users) {
