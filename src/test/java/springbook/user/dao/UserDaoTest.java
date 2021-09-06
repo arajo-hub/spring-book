@@ -19,7 +19,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import springbook.user.domain.Level;
 import springbook.user.domain.User;
 import springbook.user.service.MailSender;
-import springbook.user.service.UserService;
+import springbook.user.service.UserServiceImpl;
+import springbook.user.service.UserServiceTx;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -32,8 +33,8 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static springbook.user.service.UserService.MIN_LOGCOUNT_FOR_SILVER;
-import static springbook.user.service.UserService.MIN_RECOMMEND_FOR_GOLD;
+import static springbook.user.service.UserServiceImpl.MIN_LOGCOUNT_FOR_SILVER;
+import static springbook.user.service.UserServiceImpl.MIN_RECOMMEND_FOR_GOLD;
 
 @ExtendWith(SpringExtension.class) // 스프링의 테스트 컨텍스트 프레임워크의 JUnit 확장기능 지정
 @ContextConfiguration(locations = "/test-applicationContext.xml")
@@ -58,7 +59,7 @@ public class UserDaoTest {
     DataSource dataSource;
 
     @Autowired
-    UserService userService;
+    UserServiceImpl userServiceImpl;
 
     @Autowired
     UserDao userDao;
@@ -332,7 +333,7 @@ public class UserDaoTest {
     // 빈 주입 확인 테스트
     @Test
     public void bean() {
-        assertThat(this.userService, notNullValue());
+        assertThat(this.userServiceImpl, notNullValue());
     }
 
 //    @Test
@@ -350,31 +351,83 @@ public class UserDaoTest {
 //        checkLevelUpgraded(users.get(3), true);
 //        checkLevelUpgraded(users.get(4), false);
 //    }
+//
+//    @Test
+//    @DirtiesContext // 컨텍스트의 DI 설정을 변경하는 테스트라는 것을 알려준다.
+//    public void upgradeLevels() throws Exception {
+//        // 목 오브젝트를 통해 메일 발송 여부를 검증하도록 수정
+//        userDao.deleteAll();
+//        for (User user : users) {
+//            userDao.add(user);
+//        }
+//
+//        MockMailSender mockMailSender = new MockMailSender();
+//        userService.setMailSender((MailSender) mockMailSender);
+//
+//        userService.upgradeLevels();
+//
+//        checkLevelUpgraded(users.get(0), false);
+//        checkLevelUpgraded(users.get(1), true);
+//        checkLevelUpgraded(users.get(2), false);
+//        checkLevelUpgraded(users.get(3), true);
+//        checkLevelUpgraded(users.get(4), false);
+//
+//        List<String> request = mockMailSender.getRequests();
+//        assertThat(request.size()).isEqualTo(2);
+//        assertThat(request.get(0)).isEqualTo(users.get(1).getEmail());
+//        assertThat(request.get(1)).isEqualTo(users.get(3).getEmail());
+//    }
 
     @Test
-    @DirtiesContext // 컨텍스트의 DI 설정을 변경하는 테스트라는 것을 알려준다.
     public void upgradeLevels() throws Exception {
-        // 목 오브젝트를 통해 메일 발송 여부를 검증하도록 수정
-        userDao.deleteAll();
-        for (User user : users) {
-            userDao.add(user);
-        }
+//        // 목 오브젝트를 통해 메일 발송 여부를 검증하도록 수정
+//        userDao.deleteAll();
+//        for (User user : users) {
+//            userDao.add(user);
+//        }
+//
+//        MockMailSender mockMailSender = new MockMailSender();
+//        userServiceImpl.setMailSender((MailSender) mockMailSender);
+//
+//        userServiceImpl.upgradeLevels();
+//
+//        checkLevelUpgraded(users.get(0), false);
+//        checkLevelUpgraded(users.get(1), true);
+//        checkLevelUpgraded(users.get(2), false);
+//        checkLevelUpgraded(users.get(3), true);
+//        checkLevelUpgraded(users.get(4), false);
+//
+//        List<String> request = mockMailSender.getRequests();
+//        assertThat(request.size()).isEqualTo(2);
+//        assertThat(request.get(0)).isEqualTo(users.get(1).getEmail());
+//        assertThat(request.get(1)).isEqualTo(users.get(3).getEmail());
+
+        // MockUserDao를 사용해서 만든 고립된 테스트
+        UserServiceImpl userServiceImpl = new UserServiceImpl();
+
+        MockUserDao mockUserDao = new MockUserDao(this.users);
+        userServiceImpl.setUserDao(mockUserDao);
 
         MockMailSender mockMailSender = new MockMailSender();
-        userService.setMailSender((MailSender) mockMailSender);
+        userServiceImpl.setMailSender((MailSender) mockMailSender);
 
-        userService.upgradeLevels();
+        userServiceImpl.upgradeLevels();
 
-        checkLevelUpgraded(users.get(0), false);
-        checkLevelUpgraded(users.get(1), true);
-        checkLevelUpgraded(users.get(2), false);
-        checkLevelUpgraded(users.get(3), true);
-        checkLevelUpgraded(users.get(4), false);
+        List<User> updated = mockUserDao.getUpdated();
+        assertThat(updated.size()).isEqualTo(2);
+        checkUserAndLevel(updated.get(0), "joytouch", Level.SILVER);
+        checkUserAndLevel(updated.get(1), "madnite1", Level.GOLD);
 
         List<String> request = mockMailSender.getRequests();
         assertThat(request.size()).isEqualTo(2);
         assertThat(request.get(0)).isEqualTo(users.get(1).getEmail());
         assertThat(request.get(1)).isEqualTo(users.get(3).getEmail());
+
+    }
+
+    private void checkUserAndLevel(User updated, String expectedId, Level expectedLevel) {
+        assertThat(updated.getId()).isEqualTo(expectedId);
+        assertThat(updated.getLevel()).isEqualTo(expectedLevel);
     }
 
     private void checkLevelUpgraded(User user, boolean upgraded) {
@@ -399,8 +452,8 @@ public class UserDaoTest {
         User userWithoutLevel = users.get(0);
         userWithoutLevel.setLevel(null); // 레벨이 비어 있는 사용자
 
-        userService.add(userWithLevel);
-        userService.add(userWithoutLevel);
+        userServiceImpl.add(userWithLevel);
+        userServiceImpl.add(userWithoutLevel);
 
         User userWithLevelRead = userDao.get(userWithLevel.getId());
         User userWithoutLevelRead = userDao.get(userWithoutLevel.getId());
@@ -411,18 +464,23 @@ public class UserDaoTest {
 
     @Test
     public void upgradeAllOrNothing() throws Exception {
-        UserService testUserService = new TestUserService(users.get(3).getId());
+        TestUserService testUserService = new TestUserService(users.get(3).getId());
         testUserService.setUserDao(this.userDao);
 //        testUserService.setDataSource(this.dataSource);
         testUserService.setMailSender(mailSender); // 테스트용 UserService를 위한 메일 전송  오브젝트의 수동 DI
-        testUserService.setTransactionManager(transactionManager); // userService 빈의 프로퍼티 설정과 동일한 수동 DI
+
+        UserServiceTx txUserService = new UserServiceTx();
+        txUserService.setTransactionManager(transactionManager);
+        txUserService.setUserService(testUserService);
+
         userDao.deleteAll();
+
         for (User user : users) {
             userDao.add(user);
         }
 
         try {
-            testUserService.upgradeLevels();
+            txUserService.upgradeLevels();
             fail("TestUserServiceException expected");
         } catch (TestUserServiceException e) {
 

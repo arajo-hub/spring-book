@@ -13,7 +13,7 @@
         <property name="password" value="book" />
     </bean>
 
-    <bean id="userService" class="springbook.user.service.UserService">
+    <bean id="userService" class="springbook.user.service.UserServiceImpl">
         <property name="userDao" ref="userDao" />
         <property name="transactionManager" ref="transactionManager" />
         <property name="mailSender" ref="mailSender" />
