@@ -7,7 +7,7 @@ import springbook.user.domain.User;
 
 public class UserServiceTx implements UserService {
 
-    UserService userService;
+    UserService userService; // 타깃 오브젝트
     PlatformTransactionManager transactionManager;
 
     public void setTransactionManager (PlatformTransactionManager transactionManager) {
@@ -20,11 +20,11 @@ public class UserServiceTx implements UserService {
 
     @Override
     public void add(User user) {
-        userService.add(user);
-    }
+        this.userService.add(user);
+    } // 메소드 구현과 위임
 
     @Override
-    public void upgradeLevels() {
+    public void upgradeLevels() { // 메소드 구현
         TransactionStatus status = this.transactionManager.getTransaction(new DefaultTransactionDefinition());
         try {
             userService.upgradeLevels();

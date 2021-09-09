@@ -1,4 +1,4 @@
-package springbook.learningtest.template;
+package springbook.learningtest.jdk.template;
 
 //public interface LineCallback {
 //    Integer doSomethingWithLine(String line, Integer value);
