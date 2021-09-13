@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.proxy.Proxy;
 import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
@@ -17,9 +18,11 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.PlatformTransactionManager;
+import springbook.learningtest.jdk.TransactionHandler;
 import springbook.user.domain.Level;
 import springbook.user.domain.User;
 import springbook.user.service.MailSender;
+import springbook.user.service.UserService;
 import springbook.user.service.UserServiceImpl;
 import springbook.user.service.UserServiceTx;
 
@@ -468,14 +471,43 @@ public class UserDaoTest {
 
     @Test
     public void upgradeAllOrNothing() throws Exception {
+//        TestUserService testUserService = new TestUserService(users.get(3).getId());
+//        testUserService.setUserDao(this.userDao);
+////        testUserService.setDataSource(this.dataSource);
+//        testUserService.setMailSender(mailSender); // 테스트용 UserService를 위한 메일 전송  오브젝트의 수동 DI
+//
+//        UserServiceTx txUserService = new UserServiceTx();
+//        txUserService.setTransactionManager(transactionManager);
+//        txUserService.setUserService(testUserService);
+//
+//        userDao.deleteAll();
+//
+//        for (User user : users) {
+//            userDao.add(user);
+//        }
+//
+//        try {
+//            txUserService.upgradeLevels();
+//            fail("TestUserServiceException expected");
+//        } catch (TestUserServiceException e) {
+//
+//        }
+//
+//        checkLevelUpgraded(users.get(1), false);
+
+        // 다이내믹 프록시를 이용한 트랜잭션 테스트
         TestUserService testUserService = new TestUserService(users.get(3).getId());
         testUserService.setUserDao(this.userDao);
-//        testUserService.setDataSource(this.dataSource);
         testUserService.setMailSender(mailSender); // 테스트용 UserService를 위한 메일 전송  오브젝트의 수동 DI
 
-        UserServiceTx txUserService = new UserServiceTx();
-        txUserService.setTransactionManager(transactionManager);
-        txUserService.setUserService(testUserService);
+        TransactionHandler txHandler = new TransactionHandler();
+        // 트랜잭션 핸들러가 필요한 정보와 오브젝트를 DI해준다.
+        txHandler.setTarget(testUserService);
+        txHandler.setTransactionManager(transactionManager);
+        txHandler.setPattern("upgradeLevels");
+        // UserService 인터페이스 타입의 다이내믹 프록시 생성
+        UserService txUserService = (UserService) Proxy.newProxyInstance(
+                getClass().getClassLoader(), new Class[] { UserService.class }, txHandler);
 
         userDao.deleteAll();
 

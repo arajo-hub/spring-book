@@ -46,4 +46,8 @@
         <property name="dataSource" ref="dataSource" />
     </bean>
 
+    <bean id="message" class="springbook.learingtest.spring.factorybean.MessageFactoryBean">
+        <property name="text" value="Factory Bean" />
+    </bean>
+
 </beans>
