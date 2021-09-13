@@ -10,7 +10,8 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration // 설정파일 이름을 지정하지 않으면 클래스명 + "-context.xml"이 디폴트
+@ContextConfiguration
+// 설정파일 이름을 지정하지 않으면 클래스명 + "-context.xml"이 디폴트
 public class FactoryBeanTest {
 
     @Autowired
