@@ -21,10 +21,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import springbook.learningtest.jdk.TransactionHandler;
 import springbook.user.domain.Level;
 import springbook.user.domain.User;
-import springbook.user.service.MailSender;
-import springbook.user.service.UserService;
-import springbook.user.service.UserServiceImpl;
-import springbook.user.service.UserServiceTx;
+import springbook.user.service.*;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -34,6 +31,7 @@ import java.util.List;
 
 import static com.sun.tools.doclint.Entity.times;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Fail.fail;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -495,22 +493,44 @@ public class UserDaoTest {
 //
 //        checkLevelUpgraded(users.get(1), false);
 
-        // 다이내믹 프록시를 이용한 트랜잭션 테스트
-        TestUserService testUserService = new TestUserService(users.get(3).getId());
-        testUserService.setUserDao(this.userDao);
-        testUserService.setMailSender(mailSender); // 테스트용 UserService를 위한 메일 전송  오브젝트의 수동 DI
+//        // 다이내믹 프록시를 이용한 트랜잭션 테스트
+//        TestUserService testUserService = new TestUserService(users.get(3).getId());
+//        testUserService.setUserDao(this.userDao);
+//        testUserService.setMailSender(mailSender); // 테스트용 UserService를 위한 메일 전송  오브젝트의 수동 DI
+//
+//        TransactionHandler txHandler = new TransactionHandler();
+//        // 트랜잭션 핸들러가 필요한 정보와 오브젝트를 DI해준다.
+//        txHandler.setTarget(testUserService);
+//        txHandler.setTransactionManager(transactionManager);
+//        txHandler.setPattern("upgradeLevels");
+//        // UserService 인터페이스 타입의 다이내믹 프록시 생성
+//        UserService txUserService = (UserService) Proxy.newProxyInstance(
+//                getClass().getClassLoader(), new Class[] { UserService.class }, txHandler);
+//
+//        userDao.deleteAll();
+//
+//        for (User user : users) {
+//            userDao.add(user);
+//        }
+//
+//        try {
+//            txUserService.upgradeLevels();
+//            fail("TestUserServiceException expected");
+//        } catch (TestUserServiceException e) {
+//
+//        }
+//
+//        checkLevelUpgraded(users.get(1), false);
 
-        TransactionHandler txHandler = new TransactionHandler();
-        // 트랜잭션 핸들러가 필요한 정보와 오브젝트를 DI해준다.
-        txHandler.setTarget(testUserService);
-        txHandler.setTransactionManager(transactionManager);
-        txHandler.setPattern("upgradeLevels");
-        // UserService 인터페이스 타입의 다이내믹 프록시 생성
-        UserService txUserService = (UserService) Proxy.newProxyInstance(
-                getClass().getClassLoader(), new Class[] { UserService.class }, txHandler);
+        TestUserService testUserService = new TestUserService(users.get(3).getId());
+        testUserService.setUserDao(userDao);
+        testUserService.setMailSender(mailSender);
+
+        TxProxyFactoryBean txProxyFactoryBean = context.getBean("&userService", TxProxyFactoryBean.class); // 테스트용 타깃 주입
+        txProxyFactoryBean.setTarget(testUserService);
+        UserService txUserService = (UserService) txProxyFactoryBean.getObject();
 
         userDao.deleteAll();
-
         for (User user : users) {
             userDao.add(user);
         }
@@ -519,7 +539,6 @@ public class UserDaoTest {
             txUserService.upgradeLevels();
             fail("TestUserServiceException expected");
         } catch (TestUserServiceException e) {
-
         }
 
         checkLevelUpgraded(users.get(1), false);
