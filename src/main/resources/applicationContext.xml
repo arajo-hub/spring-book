@@ -58,4 +58,15 @@
         <property name="serviceInterface" value="springbook.user.service.UserService" />
     </bean>
 
+    <bean id="coreServiceTarget" class="complex.module.CoreServiceImpl">
+        <property name="coreDao" ref="coreDao" />
+    </bean>
+
+    <bean id="coreService" class="springbook.service.TxProxyFactoryBean">
+        <property name="target" ref="coreServiceTarget" />
+        <property name="transactionManager" ref="transactionManager" />
+        <property name="pattern" value="" />
+        <property name="serviceInterface" value="complex.module.CoreService" />
+    </bean>
+
 </beans>
