@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cglib.proxy.Proxy;
 import org.springframework.context.ApplicationContext;
@@ -468,6 +469,7 @@ public class UserDaoTest {
     }
 
     @Test
+    @DirtiesContext // 컨텍스트 설정을 변경하기 때문에 여전히 필요!
     public void upgradeAllOrNothing() throws Exception {
 //        TestUserService testUserService = new TestUserService(users.get(3).getId());
 //        testUserService.setUserDao(this.userDao);
@@ -526,7 +528,8 @@ public class UserDaoTest {
         testUserService.setUserDao(userDao);
         testUserService.setMailSender(mailSender);
 
-        TxProxyFactoryBean txProxyFactoryBean = context.getBean("&userService", TxProxyFactoryBean.class); // 테스트용 타깃 주입
+//        TxProxyFactoryBean txProxyFactoryBean = context.getBean("&userService", TxProxyFactoryBean.class); // 테스트용 타깃 주입
+        ProxyFactoryBean txProxyFactoryBean = context.getBean("&userService", ProxyFactoryBean.class);
         txProxyFactoryBean.setTarget(testUserService);
         UserService txUserService = (UserService) txProxyFactoryBean.getObject();
 
