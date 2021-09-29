@@ -58,13 +58,17 @@
 <!--        <property name="serviceInterface" value="springbook.user.service.UserService" />-->
 <!--    </bean>-->
 
-    <bean id="userService" class="org.springframework.aop.framework.ProxyFactoryBean">
-        <property name="target" ref="userServiceImpl" />
-        <property name="interceptorNames">
-            <list>
-                <value>transactionAdvisor</value>
-            </list>
-        </property>
+<!--    <bean id="userService" class="org.springframework.aop.framework.ProxyFactoryBean">-->
+<!--        <property name="target" ref="userServiceImpl" />-->
+<!--        <property name="interceptorNames">-->
+<!--            <list>-->
+<!--                <value>transactionAdvisor</value>-->
+<!--            </list>-->
+<!--        </property>-->
+<!--    </bean>-->
+    <bean id="userService" class="springbook.service.UserServiceImpl">
+        <property name="userDao" ref="userDao" />
+        <property name="mailSender" ref="mailSender" />
     </bean>
 
     <bean id="coreServiceTarget" class="complex.module.CoreServiceImpl">
@@ -83,6 +87,7 @@
     </bean>
 
     <bean id="transactionPointcut" class="org.springframework.aop.support.NameMatchMethodPointcut">
+        <property name="mappedClassName" value="*ServiceImpl" />
         <property name="mappedName" value="upgrade*" />
     </bean>
 
@@ -90,5 +95,10 @@
         <property name="advice" ref="transactionAdvice" />
         <property name="pointcut" ref="transactionPointcut" />
     </bean>
+
+    <!-- 다른 빈에서 참조되거나 코드에서 빈 이름으로 조회될 필요가 없는 빈이라면 아이디를 등록하지 않아도 무방하다. -->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" />
+
+    <bean id="testUserService" class="springbook.user.service.UserDaoTest$TestUserServiceImpl" parent="userService" />
 
 </beans>

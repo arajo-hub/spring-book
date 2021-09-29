@@ -76,6 +76,9 @@ public class UserDaoTest {
     @Autowired
     MailSender mailSender;
 
+    @Autowired
+    UserService testUserService;
+
 //    @Autowired // ApplicationContext 타입의 인스턴스 변수를 없애고 UserDao 빈을 직접 DI 받는다.
     private UserDao dao;
     private User user1;
@@ -143,6 +146,15 @@ public class UserDaoTest {
 
         @Override
         public void send(SimpleMailMessage... simpleMessages) throws MailException {
+        }
+    }
+
+    static class TestUserServiceImpl extends UserServiceImpl {
+        private String id = "madnite1";
+
+        protected void upgradeLevel(User user) {
+            if (user.getId().equals(this.id)) throw new TestUserServiceException();
+            super.upgradeLevel(user);
         }
     }
 
@@ -539,7 +551,8 @@ public class UserDaoTest {
         }
 
         try {
-            txUserService.upgradeLevels();
+//            txUserService.upgradeLevels();
+            this.testUserService.upgradeLevels();
             fail("TestUserServiceException expected");
         } catch (TestUserServiceException e) {
         }
