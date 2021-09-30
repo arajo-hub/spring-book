@@ -101,4 +101,9 @@
 
     <bean id="testUserService" class="springbook.user.service.UserDaoTest$TestUserServiceImpl" parent="userService" />
 
+    <bean id="transactionPointcut" class="springbook.user.service.NameMatchClassMethodPointcut">
+        <property name="mappedClassName" value="*NotServiceImpl" />
+        <property name="mappedName" value="upgrade*" />
+    </bean>
+
 </beans>

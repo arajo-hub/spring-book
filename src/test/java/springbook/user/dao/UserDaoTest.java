@@ -587,4 +587,9 @@ public class UserDaoTest {
         assertThat(mailMessages.get(1).getTo()[0]).isEqualTo(users.get(3).getEmail());
     }
 
+    @Test
+    public void advisorAutoProxyCreator() {
+        assertThat(testUserService).isEqualTo(java.lang.reflect.Proxy.class);
+    }
+
 }
