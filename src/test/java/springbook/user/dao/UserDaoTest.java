@@ -11,6 +11,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.dao.TransientDataAccessResourceException;
 import org.springframework.jdbc.support.SQLErrorCodeSQLExceptionTranslator;
 import org.springframework.jdbc.support.SQLExceptionTranslator;
 import org.springframework.mail.MailException;
@@ -590,6 +591,16 @@ public class UserDaoTest {
     @Test
     public void advisorAutoProxyCreator() {
         assertThat(testUserService).isEqualTo(java.lang.reflect.Proxy.class);
+    }
+
+    @Test
+    public void readOnlyTransactionAttribute() {
+//        // 일단은 어떤 예외가 던져질지 모르기 때문에 expected 없이 테스트 작성
+//        testUserService.getAll(); // 트랜잭션 속성이 제대로 적용됐다면 여기서 읽기전용 속성을 위반했기 때문에 예외가 발생해야 한다.
+
+        assertThrows(TransientDataAccessResourceException.class, () -> {
+            testUserService.getAll();
+        });
     }
 
 }

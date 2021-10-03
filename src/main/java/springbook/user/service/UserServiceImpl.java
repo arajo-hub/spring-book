@@ -7,6 +7,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.jta.JtaTransactionManager;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -197,6 +198,7 @@ import java.util.Properties;
 //
 //}
 
+@Transactional
 public class UserServiceImpl implements UserService {
 
     public static final int MIN_LOGCOUNT_FOR_SILVER = 50;
@@ -313,6 +315,28 @@ public class UserServiceImpl implements UserService {
             user.setLevel(Level.BASIC);
         }
         userDao.add(user);
+    }
+
+    // DAO로 위임하도록 만든다. 필요한 부가 로직을 넣어도 좋다.
+
+    @Override
+    public User get(String id) {
+        return userDao.get(id);
+    }
+
+    @Override
+    public List<User> getAll() {
+        return userDao.getAll();
+    }
+
+    @Override
+    public void deleteAll() {
+        userDao.deleteAll();
+    }
+
+    @Override
+    public void update(User user) {
+        userDao.update(user);
     }
 
 }
