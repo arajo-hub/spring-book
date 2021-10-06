@@ -1,5 +1,8 @@
 package springbook.user.sqlservice;
 
 public interface SqlService {
-    String getSql(String key) throws SqlRetrievalFailureException;
+//    String getSql(String key) throws SqlRetrievalFailureException;
+
+    sqlReader.readSql(sqlRegistry);
+
 }
