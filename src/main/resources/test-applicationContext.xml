@@ -194,6 +194,9 @@
 
     <bean id="unmarshaller" class="org.springframework.oxm.jaxb.Jaxb2Marshaller">
         <property name="contextPath" value="springbook.user.sqlservice.jaxb" />
+<!--        <property name="sqlmap" value="classpath:springbook/user/dao/sqlmap.xml" />-->
+<!--        <property name="sqlmap" value="file:/opt/resources/sqlmap.xml" />-->
+<!--        <property name="sqlmap" value="http://www.epril.com/resources/sqlmap.xml" />-->
     </bean>
 
 </beans>

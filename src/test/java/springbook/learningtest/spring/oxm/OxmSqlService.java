@@ -1,5 +1,7 @@
 package springbook.learningtest.spring.oxm;
 
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import springbook.user.dao.UserDao;
 import springbook.user.sqlservice.*;
 import springbook.user.sqlservice.jaxb.SqlType;
@@ -22,6 +24,10 @@ public class OxmSqlService implements SqlService {
     // 하나의 클래스로 만들어두기 때문에 빈의 등록과 설정은 단순해지고 쉽게 사용할 수 있다.
 
     private SqlRegistry sqlRegistry = new HashMapSqlRegistry();
+
+    public void setSqlmap(Resource sqlmap) {
+        this.oxmSqlReader.setSqlmap(sqlmap);
+    }
 
     public void setSqlRegistry(SqlRegistry sqlRegistry) {
         this.sqlRegistry = sqlRegistry;
@@ -58,6 +64,12 @@ public class OxmSqlService implements SqlService {
         private final static String DEFAULT_SQLMAP_FILE = "sqlmap.xml";
         private String sqlmapFile = DEFAULT_SQLMAP_FILE;
 
+        private Resource sqlmap = new ClassPathResource("sqlmap.xml", UserDao.class);
+
+        public void setSqlmap(Resource sqlmap) {
+            this.sqlmap = sqlmap;
+        }
+
         public void setUnmarshaller(Unmarshaller unmarshaller) {
             this.unmarshaller = unmarshaller;
         }
@@ -69,7 +81,8 @@ public class OxmSqlService implements SqlService {
         @Override
         public void read(SqlRegistry sqlRegistry) {
             try {
-                Source source = new StreamSource(UserDao.class.getResourceAsStream(this.sqlmapFile));
+//                Source source = new StreamSource(UserDao.class.getResourceAsStream(this.sqlmapFile));
+                StreamSource source = new StreamSource(sqlmap.getInputStream());
                 Sqlmap sqlmap = (Sqlmap) this.unmarshaller.unmarshal(source);
 
                 for (SqlType sql : sqlmap.getSql()) {
