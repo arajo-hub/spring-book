@@ -208,10 +208,17 @@
 <!--        <property name="sqlmap" value="classpath:springbook/user/dao/sqlmap.xml" />-->
 <!--        <property name="sqlmap" value="file:/opt/resources/sqlmap.xml" />-->
 <!--        <property name="sqlmap" value="http://www.epril.com/resources/sqlmap.xml" />-->
+        <property name="sqlRegistry" ref="sqlRegistry" />
     </bean>
 
     <tx:annotation-driven />
 
     <context:annotation-config />
+
+    <bean id="sqlRegistry" class="springbook.user.sqlservice.MyUpdatableSqlRegistry" />
+
+    <bean id="sqlAdminService" class="springbook.user.sqlservice.SqlAdminService">
+        <property name="updatableSqlRegistry" ref="sqlRegistry" />
+    </bean>
 
 </beans>
