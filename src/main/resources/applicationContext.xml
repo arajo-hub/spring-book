@@ -224,4 +224,9 @@
 
     <bean id="sqlRegistry" class="springbook.user.sqlservice.updatable.ConcurrentHashMapSqlRegistry" />
 
+    <!-- HSQL 내장형 DB 설정 예 -->
+    <jdbc:embedded-database id="embeddedDatabase" type="HSQL">
+        <jdbc:script location="classpath:schema.sql" />
+    </jdbc:embedded-database>
+
 </beans>

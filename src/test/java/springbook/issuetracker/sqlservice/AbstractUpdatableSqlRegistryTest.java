@@ -9,31 +9,29 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class ConcurrentHashMapSqlRegistryTest extends AbstractUpdatableSqlRegistryTest {
+public class AbstractUpdatableSqlRegistryTest {
 
     UpdatableSqlRegistry sqlRegistry;
 
-    protected UpdatableSqlRegistry createUpdatableSqlRegistry() {
-        return new ConcurrentHashMapSqlRegistry();
-    }
-
     @BeforeEach
     public void setUp() {
-        sqlRegistry = new ConcurrentHashMapSqlRegistry();
+        sqlRegistry = createUpdatableSqlRegistry();
         sqlRegistry.registerSql("KEY1", "SQL1");
         sqlRegistry.registerSql("KEY2", "SQL2");
         sqlRegistry.registerSql("KEY3", "SQL3");
     }
 
-    @Test
-    public void find() {
-        checkFindResult("SQL1", "SQL2", "SQL3");
-    }
+    abstract protected UpdatableSqlRegistry createUpdatableSqlRegistry();
 
-    private void checkFindResult(String expected1, String expected2, String expected3) {
+    protected void checkFindResult(String expected1, String expected2, String expected3) {
         assertThat(sqlRegistry.findSql("KEY1")).isEqualTo(expected1);
         assertThat(sqlRegistry.findSql("KEY2")).isEqualTo(expected2);
         assertThat(sqlRegistry.findSql("KEY3")).isEqualTo(expected3);
+    }
+
+    @Test
+    public void find() {
+        checkFindResult("SQL1", "SQL2", "SQL3");
     }
 
     @Test
@@ -65,4 +63,5 @@ public class ConcurrentHashMapSqlRegistryTest extends AbstractUpdatableSqlRegist
             sqlRegistry.updateSql("SQL9999!@#$", "Modified2");
         });
     }
+
 }
