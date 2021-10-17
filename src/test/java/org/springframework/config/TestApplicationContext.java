@@ -2,6 +2,7 @@ package org.springframework.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
@@ -29,10 +30,14 @@ import static org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType.
 
 @Configuration
 @EnableTransactionManagement
+@ComponentScan(basePackages="springbook.user")
 public class TestApplicationContext {
 
     @Autowired
     SqlService sqlService;
+
+    @Autowired
+    UserDao userDao;
 
 //    @Resource
 //    Database embeddedDatabase;
@@ -64,19 +69,20 @@ public class TestApplicationContext {
     * 애플리케이션 로직 & 테스트
     */
 
-    @Bean
-    public UserDao userDao() {
-        UserDaoJdbc dao = new UserDaoJdbc();
-        dao.setDataSource(dataSource());
-//        dao.setSqlService(sqlService());
-        dao.setSqlService(this.sqlService);
-        return dao;
-    }
+//    @Bean
+//    public UserDao userDao() {
+////        UserDaoJdbc dao = new UserDaoJdbc();
+////        dao.setDataSource(dataSource());
+////        dao.setSqlService(sqlService());
+////        dao.setSqlService(this.sqlService);
+////        return dao;
+//        return new UserDaoJdbc();
+//    }
 
     @Bean
     public UserService userService() {
         UserServiceImpl service = new UserServiceImpl();
-        service.setUserDao(userDao());
+        service.setUserDao(this.userDao);
         service.setMailSender(mailSender());
         return service;
     }
@@ -84,7 +90,7 @@ public class TestApplicationContext {
     @Bean
     public UserService testUserService() {
         TestUserService testService = new TestUserService();
-        testService.setUserDao(userDao());
+        testService.setUserDao(this.userDao);
         testService.setMailSender(mailSender());
         return testService;
     }

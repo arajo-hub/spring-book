@@ -1,10 +1,12 @@
 package springbook.user.dao;
 
+import org.springframework.stereotype.Repository;
 import springbook.user.domain.User;
 
 import java.sql.Connection;
 import java.util.List;
 
+@Repository
 public interface UserDao {
 
     void add(User user);

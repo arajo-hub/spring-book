@@ -5,6 +5,8 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
@@ -198,12 +200,15 @@ import java.util.Properties;
 //
 //}
 
-@Transactional
+//@Transactional
+//@Component
+@Service("userService")
 public class UserServiceImpl implements UserService {
 
     public static final int MIN_LOGCOUNT_FOR_SILVER = 50;
     public static final int MIN_RECOMMEND_FOR_GOLD = 30;
 
+    @Autowired
     UserDao userDao;
 
     public void setUserDao(UserDao userDao) {
@@ -216,7 +221,8 @@ public class UserServiceImpl implements UserService {
         this.transactionManager = transactionManager;
     }
 
-    MailSender mailSender;
+    @Autowired
+    private MailSender mailSender;
 
     public void setMailSender(MailSender mailSender) {
         this.mailSender = mailSender;
