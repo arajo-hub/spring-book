@@ -64,7 +64,8 @@ public class OxmSqlService implements SqlService {
         private final static String DEFAULT_SQLMAP_FILE = "sqlmap.xml";
         private String sqlmapFile = DEFAULT_SQLMAP_FILE;
 
-        private Resource sqlmap = new ClassPathResource("sqlmap.xml", UserDao.class);
+//        private Resource sqlmap = new ClassPathResource("sqlmap.xml", UserDao.class);
+        private Resource sqlmap = new ClassPathResource("/sqlmap.xml");
 
         public void setSqlmap(Resource sqlmap) {
             this.sqlmap = sqlmap;

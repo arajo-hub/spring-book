@@ -1,5 +1,6 @@
 package springbook.user.dao;
 
+import org.springframework.config.TestAppContext;
 import org.springframework.config.TestApplicationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import springbook.user.domain.Level;
 import springbook.user.domain.User;
 import springbook.user.service.*;
+import sun.awt.AppContext;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -44,7 +46,8 @@ import static springbook.user.service.UserServiceImpl.MIN_RECOMMEND_FOR_GOLD;
 @ExtendWith(SpringExtension.class) // 스프링의 테스트 컨텍스트 프레임워크의 JUnit 확장기능 지정
 //@ContextConfiguration(locations = "/test-applicationContext.xml")
 //@DirtiesContext // 테스트 메소드에서 애플리케이션 컨텍스트의 구성이나 상태를 변경한다는 것을 테스트 컨텍스트 프레임워크에 알려준다.
-@ContextConfiguration(classes= TestApplicationContext.class)
+//@ContextConfiguration(classes= TestApplicationContext.class)
+@ContextConfiguration(classes={TestAppContext.class, AppContext.class})
 public class UserDaoTest {
 
     @Autowired
